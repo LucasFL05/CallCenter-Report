@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Center Reports</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .dashboard {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .button-group {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .upload-section {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+        }
+
+        button, .button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            min-width: 200px;
+            box-sizing: border-box;
+        }
+
+        .upload-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .report-btn {
+            background: #2980b9;
+            color: white;
+        }
+
+        .report-btn.dropped {
+            background: #e67e22;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        button:hover, .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .report-btn.dropped:hover {
+            background: #d35400;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            width: 100%;
+        }
+
+        .icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .upload-section form {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Painel de Controle - Call Center</h1>
+</div>
+<div class="dashboard">
+    <!-- Seção de Upload -->
+    <div class="upload-section">
+        <h2>Importar Dados</h2>
+        <div class="button-group">
+            <!-- Formulário Chamadas -->
+            <form action="/upload/calls" method="POST" enctype="multipart/form-data" id="callForm">
+                <input id="callsFile" type="file" name="file" accept=".csv" required style="display: none;">
+                <button type="button" class="upload-btn" onclick="document.getElementById('callsFile').click();">
+                    📤 Upload Chamadas
+                </button>
+            </form>
+
+            <!-- Formulário Pausas -->
+            <form action="/upload/pauses" method="POST" enctype="multipart/form-data" id="pauseForm">
+                <input id="pausesFile" type="file" name="file" accept=".csv" required style="display: none;">
+                <button type="button" class="upload-btn" onclick="document.getElementById('pausesFile').click();">
+                    📤 Upload Pausas
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Seção de Relatórios -->
+    <div class="reports-section">
+        <h2>Visualizar Relatórios</h2>
+        <div class="button-group">
+            <a href="/report/call" class="button report-btn" target="_blank">
+                📊 Chamadas
+            </a>
+            <a href="/report/pause" class="button report-btn" target="_blank">
+                📊 Pausas
+            </a>
+            <a href="/report/dropped-calls" class="button report-btn dropped" target="_blank">
+                ⚠️ Chamadas Derrubadas
+            </a>
+        </div>
+    </div>
+
+    <!-- Seção Administrativa -->
+    <div class="admin-section">
+        <h2>Ações Críticas</h2>
+        <div class="button-group">
+            <button class="delete-btn" onclick="confirmDelete()">
+                🗑️ Apagar Todos os Dados
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Upload automático ao selecionar arquivo
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            if(this.files.length > 0) {
+                const form = this.closest('form');
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if(response.ok) {
+                        alert('Arquivo processado com sucesso!');
+                        input.value = '';
+                    } else {
+                        alert('Erro no processamento!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Falha na conexão!');
+                });
+            }
+        });
+    });
+
+    // Confirmação para apagar dados
+    function confirmDelete() {
+        if(confirm('ATENÇÃO!\n\nEsta ação irá apagar TODOS os registros permanentemente.\nDeseja continuar?')) {
+            fetch('/delete/all', {
+                method: 'POST'
+            })
+            .then(response => {
+                if(response.ok) {
+                    alert('Base de dados resetada com sucesso!');
+                } else {
+                    alert('Erro na operação!');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Falha na conexão!');
+            });
+        }
+    }
+</script>
+</body>
+</html>
