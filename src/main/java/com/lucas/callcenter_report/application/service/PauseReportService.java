@@ -31,6 +31,8 @@ public class PauseReportService {
         }
     }
 
+
+
     public Map<String, Map<String, Object>> generatePauseReport() {
         List<Pause> pauses = pauseRepository.findAll();
 
@@ -41,6 +43,23 @@ public class PauseReportService {
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 this::calculateMetrics
+                        )
+                ));
+    }
+
+    public Map<String, Map<String, Map<String, Object>>> generateHourlyPauseReport() {
+        List<Pause> pauses = pauseRepository.findAll();
+
+        return pauses.stream()
+                .filter(p -> p.getEnd() != null && p.getOperator() != null)
+                .collect(Collectors.groupingBy(
+                        Pause::getOperator,
+                        Collectors.groupingBy(
+                                p -> p.getEnd().getHour() + ":00",
+                                Collectors.collectingAndThen(
+                                        Collectors.toList(),
+                                        this::calculateMetrics
+                                )
                         )
                 ));
     }
